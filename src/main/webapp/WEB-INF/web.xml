@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<web-app xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://java.sun.com/xml/ns/javaee" xsi:schemaLocation="http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/web-app_3_0.xsd" id="WebApp_ID" version="3.0">
+  <display-name>ArtupaWeb</display-name>
+  <servlet>
+    <servlet-name>SrvValidarEntrada</servlet-name>
+    <servlet-class>artupa.servlets.SrvValidarEntrada</servlet-class>
+    <init-param>
+       <param-name>fichero_propiedades</param-name>
+       <param-value>C:\\Eclipse_JavaEE\\eclipse\\workspace\\ArtupaWeb\\src\\main\\webapp\\WEB-INF\\artupa.properties</param-value>
+    </init-param>
+  </servlet>
+  <servlet>
+    <servlet-name>SrvClientes</servlet-name>
+    <servlet-class>artupa.servlets.SrvClientes</servlet-class>
+  </servlet>
+  <servlet>
+    <servlet-name>SrvProcesarCliente</servlet-name>
+    <servlet-class>artupa.servlets.SrvProcesarCliente</servlet-class>
+  </servlet>
+  <servlet>
+    <servlet-name>SrvActualizarCliente</servlet-name>
+    <servlet-class>artupa.servlets.SrvActualizarCliente</servlet-class>
+  </servlet>
+  <servlet>
+    <servlet-name>SrvEliminarCliente</servlet-name>
+    <servlet-class>artupa.servlets.SrvEliminarCliente</servlet-class>
+  </servlet>
+  
+  <servlet-mapping>
+    <servlet-name>SrvValidarEntrada</servlet-name>
+    <url-pattern>/SrvValidarEntrada</url-pattern>
+  </servlet-mapping>  
+  <servlet-mapping>
+    <servlet-name>SrvClientes</servlet-name>
+    <url-pattern>/SrvClientes</url-pattern>
+  </servlet-mapping>
+  <servlet-mapping>
+    <servlet-name>SrvProcesarCliente</servlet-name>
+    <url-pattern>/SrvProcesarCliente</url-pattern>
+  </servlet-mapping>
+  <servlet-mapping>
+    <servlet-name>SrvActualizarCliente</servlet-name>
+    <url-pattern>/SrvActualizarCliente</url-pattern>
+  </servlet-mapping>
+  <servlet-mapping>
+    <servlet-name>SrvEliminarCliente</servlet-name>
+    <url-pattern>/SrvEliminarCliente</url-pattern>
+  </servlet-mapping>
+</web-app>
