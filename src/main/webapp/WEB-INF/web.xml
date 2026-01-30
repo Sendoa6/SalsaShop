@@ -6,7 +6,7 @@
     <servlet-class>artupa.servlets.SrvValidarEntrada</servlet-class>
     <init-param>
        <param-name>fichero_propiedades</param-name>
-       <param-value>C:\\Eclipse_JavaEE\\eclipse\\workspace\\ArtupaWeb\\src\\main\\webapp\\WEB-INF\\artupa.properties</param-value>
+       <param-value>C:\Eclipse_JavaEE\eclipse\eclipse\workspace\SalsaShop\src\main\webapp\WEB-INF\artupa.properties</param-value>
     </init-param>
   </servlet>
   <servlet>
