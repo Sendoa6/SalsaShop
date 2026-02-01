@@ -1,6 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <web-app xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://java.sun.com/xml/ns/javaee" xsi:schemaLocation="http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/web-app_3_0.xsd" id="WebApp_ID" version="3.0">
   <display-name>ArtupaWeb</display-name>
+  <welcome-file-list>
+  <welcome-file>login.html</welcome-file>
+  </welcome-file-list>
   <servlet>
     <servlet-name>SrvValidarEntrada</servlet-name>
     <servlet-class>artupa.servlets.SrvValidarEntrada</servlet-class>
@@ -22,8 +25,8 @@
     <servlet-class>artupa.servlets.SrvActualizarCliente</servlet-class>
   </servlet>
   <servlet>
-    <servlet-name>SrvEliminarCliente</servlet-name>
-    <servlet-class>artupa.servlets.SrvEliminarCliente</servlet-class>
+    <servlet-name>SrvRegistroUsuario</servlet-name>
+    <servlet-class>artupa.servlets.SrvRegistroUsuario</servlet-class>
   </servlet>
   
   <servlet-mapping>
@@ -43,7 +46,7 @@
     <url-pattern>/SrvActualizarCliente</url-pattern>
   </servlet-mapping>
   <servlet-mapping>
-    <servlet-name>SrvEliminarCliente</servlet-name>
-    <url-pattern>/SrvEliminarCliente</url-pattern>
+    <servlet-name>SrvRegistroUsuario</servlet-name>
+    <url-pattern>/SrvRegistroUsuario</url-pattern>
   </servlet-mapping>
 </web-app>

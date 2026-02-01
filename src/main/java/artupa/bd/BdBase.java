@@ -2,80 +2,90 @@ package artupa.bd;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
-
-import artupa.config.Configuracion;
+// IMPORTANTE: Importamos esto para que reconozca el objeto que le pasa el Servlet
+import artupa.config.Configuracion; 
 
 public class BdBase {
-	private static String DRIVER;
-	private static String URL;
-	private static String USER;
-	private static String PASSWORD;
-	protected Connection conexion;
 
-	public static void inicializarParametrosConexion(Configuracion configuracion) {
-		DRIVER = configuracion.getDriver();
-		URL = configuracion.getUrl();
-		USER = configuracion.getUser();
-		PASSWORD = configuracion.getPassword();
-	}
+    // --- DATOS DE CONEXIÓN FIJOS (Para que funcione seguro) ---
+    private static final String DRIVER = "com.mysql.jdbc.Driver";
+    
 
-	protected BdBase() {
-		super();
-	}
+    private static final String URL = "jdbc:mysql://localhost:3306/salsashop?useSSL=false&allowPublicKeyRetrieval=true";
+    
+    private static final String USER = "root";
+    private static final String PASSWORD = "admin"; 
+    
+    protected Connection conexion;
 
-	public boolean abrirConexion() {
-		boolean correcto = true;
-		try {
-			Class.forName(DRIVER);
-			conexion = DriverManager.getConnection(URL, USER, PASSWORD);
-		} catch (Exception e) {
-			e.printStackTrace();
-			correcto = false;
-		}
-		return correcto;
-	}
 
-	public boolean cerrarConexion() {
-		boolean correcto = true;
-		try {
-			conexion.close();
-		} catch (Exception e) {
-			e.printStackTrace();
-			correcto = false;
-		}
-		return correcto;
-	}
+    public static void inicializarParametrosConexion(Configuracion configuracion) {
+        System.out.println("SrvValidarEntrada llamó a inicializar, pero usaremos los datos fijos de BdBase.");
+    }
+    // -------------------------------------------------------------
 
-	public boolean abrirTransaccion() {
-		boolean correcto = true;
-		try {
-			conexion.setAutoCommit(false);
-		} catch (Exception e) {
-			e.printStackTrace();
-			correcto = false;
-		}
-		return correcto;
-	}
+    protected BdBase() {
+        super();
+    }
 
-	public boolean hacerCommit() {
-		boolean correcto = true;
-		try {
-			conexion.commit();
-		} catch (Exception e) {
-			e.printStackTrace();
-			correcto = false;
-		}
-		return correcto;
-	}
+    public boolean abrirConexion() {
+        boolean correcto = true;
+        try {
+            System.out.println("Intentando conectar a: " + URL);
+            Class.forName(DRIVER);
+            conexion = DriverManager.getConnection(URL, USER, PASSWORD);
+            System.out.println("¡Conexión Éxitosa!");
+        } catch (Exception e) {
+            e.printStackTrace();
+            System.out.println("FALLO EN CONEXIÓN: " + e.getMessage());
+            correcto = false;
+        }
+        return correcto;
+    }
 
-	public boolean hacerRollback() {
-		boolean correcto = true;
-		try {
-			conexion.rollback();
-		} catch (Exception e) {
-			e.printStackTrace();
-			correcto = false;
-		}
-		return correcto;
-	}
+    public boolean cerrarConexion() {
+        boolean correcto = true;
+        try {
+            if (conexion != null && !conexion.isClosed()) {
+                conexion.close();
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            correcto = false;
+        }
+        return correcto;
+    }
+
+    public boolean abrirTransaccion() {
+        boolean correcto = true;
+        try {
+            if (conexion != null) conexion.setAutoCommit(false);
+        } catch (Exception e) {
+            e.printStackTrace();
+            correcto = false;
+        }
+        return correcto;
+    }
+
+    public boolean hacerCommit() {
+        boolean correcto = true;
+        try {
+            if (conexion != null) conexion.commit();
+        } catch (Exception e) {
+            e.printStackTrace();
+            correcto = false;
+        }
+        return correcto;
+    }
+
+    public boolean hacerRollback() {
+        boolean correcto = true;
+        try {
+            if (conexion != null) conexion.rollback();
+        } catch (Exception e) {
+            e.printStackTrace();
+            correcto = false;
+        }
+        return correcto;
+    }
 }

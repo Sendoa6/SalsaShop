@@ -39,9 +39,7 @@ public class SrvValidarEntrada extends HttpServlet {
 				.cargarConfiguracion(FICHERO_CONFIGURACION);
 		if (!cargaCorrecta) {
 			System.out
-					.println("Fichero de configuración no cargado correctamente");
-		} else {
-			BdBase.inicializarParametrosConexion(Configuracion.getInstancia());
+					.println("Fichero de configuraciï¿½n no cargado correctamente");
 		}
 	}
 
