@@ -280,24 +280,36 @@ public class BdOperaciones extends BdBase {
 
     public List<Libro> getLibrosConAutor() {
         List<Libro> lista = new ArrayList<>();
+        // Asegúrate de que los nombres 'libros', 'autores' e 'id_autor' sean iguales en tu BD
         String sql = "SELECT l.isbn, l.titulo, l.precio, a.nombre FROM libros l " +
                      "INNER JOIN autores a ON l.id_autor = a.id_autor";
+        
+        System.out.println("Intentando conectar a la BD para traer libros...");
+        
         try {
+            if (conexion == null || conexion.isClosed()) {
+                System.out.println("¡ERROR!: La conexión a la base de datos está cerrada.");
+                return lista;
+            }
+
             Statement stmt = conexion.createStatement();
             ResultSet rs = stmt.executeQuery(sql);
+            
             while (rs.next()) {
                 Libro l = new Libro();
                 l.setIsbn(rs.getString("isbn"));
                 l.setTitulo(rs.getString("titulo"));
                 l.setPrecio(rs.getDouble("precio"));
-                // ¡OJO! Asegúrate de que tu clase Libro tenga este método setNombreAutor
-                // Si te da error en rojo aquí, es que te falta añadir ese campo en artupa.beans.Libro
                 l.setNombreAutor(rs.getString("nombre")); 
                 lista.add(l);
             }
+            
+            System.out.println("ÉXITO: Se han cargado " + lista.size() + " libros de la base de datos.");
+            
             rs.close();
             stmt.close();
         } catch (Exception e) {
+            System.out.println("FALLO SQL: " + e.getMessage());
             e.printStackTrace();
         }
         return lista;
