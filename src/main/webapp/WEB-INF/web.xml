@@ -28,6 +28,10 @@
     <servlet-name>SrvRegistroUsuario</servlet-name>
     <servlet-class>artupa.servlets.SrvRegistroUsuario</servlet-class>
   </servlet>
+    <servlet>
+    <servlet-name>SrvCarrito</servlet-name>
+    <servlet-class>artupa.servlets.SrvCarrito</servlet-class>
+  </servlet>
   
   <servlet-mapping>
     <servlet-name>SrvValidarEntrada</servlet-name>
@@ -48,5 +52,9 @@
   <servlet-mapping>
     <servlet-name>SrvRegistroUsuario</servlet-name>
     <url-pattern>/SrvRegistroUsuario</url-pattern>
+  </servlet-mapping>
+    <servlet-mapping>
+    <servlet-name>SrvCarrito</servlet-name>
+    <url-pattern>/SrvCarrito</url-pattern>
   </servlet-mapping>
 </web-app>

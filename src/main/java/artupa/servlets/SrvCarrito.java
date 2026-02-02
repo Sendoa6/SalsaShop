@@ -3,14 +3,12 @@ package artupa.servlets;
 import java.io.IOException;
 import java.util.ArrayList;
 import javax.servlet.ServletException;
-import javax.servlet.annotation.WebServlet; // Si usas Tomcat moderno
+import javax.servlet.annotation.WebServlet; 
 import javax.servlet.http.*;
 import artupa.bd.BdOperaciones;
 import artupa.beans.Cliente;
 import artupa.beans.Libro;
 
-// Si usas web.xml borra esta linea @WebServlet, si no, déjala.
-@WebServlet("/SrvCarrito") 
 public class SrvCarrito extends HttpServlet {
     private static final long serialVersionUID = 1L;
 
