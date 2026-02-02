@@ -12,7 +12,6 @@ import javax.servlet.http.HttpSession;
 import artupa.bd.BdOperaciones;
 import artupa.beans.Libro;
 
-@WebServlet("/SrvIndex")
 public class SrvIndex extends HttpServlet {
     
     protected void processRequest(HttpServletRequest request, HttpServletResponse response)
