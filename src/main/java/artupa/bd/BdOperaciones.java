@@ -10,6 +10,7 @@ public class BdOperaciones extends BdBase {
 
     public BdOperaciones() {
         super();
+        abrirConexion();
     }
 
     // ==========================================
@@ -280,21 +281,12 @@ public class BdOperaciones extends BdBase {
 
     public List<Libro> getLibrosConAutor() {
         List<Libro> lista = new ArrayList<>();
-        // Asegúrate de que los nombres 'libros', 'autores' e 'id_autor' sean iguales en tu BD
+        // LEFT JOIN garantiza que salgan todos los libros del script SQL
         String sql = "SELECT l.isbn, l.titulo, l.precio, a.nombre FROM libros l " +
-                     "INNER JOIN autores a ON l.id_autor = a.id_autor";
-        
-        System.out.println("Intentando conectar a la BD para traer libros...");
-        
+                     "LEFT JOIN autores a ON l.id_autor = a.id_autor";
         try {
-            if (conexion == null || conexion.isClosed()) {
-                System.out.println("¡ERROR!: La conexión a la base de datos está cerrada.");
-                return lista;
-            }
-
             Statement stmt = conexion.createStatement();
             ResultSet rs = stmt.executeQuery(sql);
-            
             while (rs.next()) {
                 Libro l = new Libro();
                 l.setIsbn(rs.getString("isbn"));
@@ -303,13 +295,9 @@ public class BdOperaciones extends BdBase {
                 l.setNombreAutor(rs.getString("nombre")); 
                 lista.add(l);
             }
-            
-            System.out.println("ÉXITO: Se han cargado " + lista.size() + " libros de la base de datos.");
-            
             rs.close();
             stmt.close();
         } catch (Exception e) {
-            System.out.println("FALLO SQL: " + e.getMessage());
             e.printStackTrace();
         }
         return lista;
