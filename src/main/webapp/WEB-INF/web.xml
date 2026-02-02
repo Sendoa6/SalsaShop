@@ -5,8 +5,8 @@
   <welcome-file>login.html</welcome-file>
   </welcome-file-list>
   <servlet>
-    <servlet-name>SrvValidarEntrada</servlet-name>
-    <servlet-class>artupa.servlets.SrvValidarEntrada</servlet-class>
+    <servlet-name>SrvIndex</servlet-name>
+    <servlet-class>artupa.servlets.SrvIndex</servlet-class>
     <init-param>
        <param-name>fichero_propiedades</param-name>
        <param-value>C:\Eclipse_JavaEE\eclipse\eclipse\workspace\SalsaShop\src\main\webapp\WEB-INF\artupa.properties</param-value>
@@ -34,8 +34,8 @@
   </servlet>
   
   <servlet-mapping>
-    <servlet-name>SrvValidarEntrada</servlet-name>
-    <url-pattern>/SrvValidarEntrada</url-pattern>
+    <servlet-name>SrvIndex</servlet-name>
+    <url-pattern>/SrvIndex</url-pattern>
   </servlet-mapping>  
   <servlet-mapping>
     <servlet-name>SrvClientes</servlet-name>

@@ -200,15 +200,13 @@ public class BdOperaciones extends BdBase {
     }
 
     // ==========================================
-    // 3. NUEVAS FUNCIONES PARA EL CARRITO (CORREGIDAS)
+    // 3. NUEVAS FUNCIONES PARA EL CARRITO
     // ==========================================
 
-    // Método para recuperar un libro por su ISBN
     public Libro obtenerLibro(String isbn) {
         Libro l = null;
         String sql = "SELECT * FROM libros WHERE isbn = ?";
         try {
-            // CORREGIDO: Usamos 'conexion' en vez de 'con'
             PreparedStatement ps = conexion.prepareStatement(sql);
             ps.setString(1, isbn);
             ResultSet rs = ps.executeQuery();
@@ -225,21 +223,17 @@ public class BdOperaciones extends BdBase {
         return l;
     }
 
-    // Método para PAGAR: Inserta la compra y RESTA el stock
     public boolean realizarCompra(Cliente cliente, ArrayList<Libro> carrito) {
         boolean exito = false;
         try {
-            // CORREGIDO: Usamos 'conexion' en todos los pasos
-            conexion.setAutoCommit(false); // Inicio transacción
+            conexion.setAutoCommit(false);
 
-            // A) Calcular ID de Compra
             int idCompra = 1;
             Statement st = conexion.createStatement();
             ResultSet rsId = st.executeQuery("SELECT MAX(id_compra) FROM compras");
             if (rsId.next()) idCompra = rsId.getInt(1) + 1;
             rsId.close();
 
-            // B) Insertar en tabla COMPRAS
             String sqlCompra = "INSERT INTO compras (id_compra, id_cliente, fecha) VALUES (?, ?, CURDATE())";
             PreparedStatement psCompra = conexion.prepareStatement(sqlCompra);
             psCompra.setInt(1, idCompra);
@@ -247,14 +241,12 @@ public class BdOperaciones extends BdBase {
             psCompra.executeUpdate();
             psCompra.close();
             
-            // C) Preparar IDs para lineas de compra
             int idLinea = 1;
             ResultSet rsIdLinea = st.executeQuery("SELECT MAX(id_linea) FROM linea_compra");
             if (rsIdLinea.next()) idLinea = rsIdLinea.getInt(1) + 1;
             rsIdLinea.close();
             st.close();
 
-            // D) Insertar detalle y restar stock
             String sqlLinea = "INSERT INTO linea_compra (id_linea, id_compra, isbn, cantidad, precio_unitario) VALUES (?, ?, ?, 1, ?)";
             String sqlUpdateStock = "UPDATE libros SET stock = stock - 1 WHERE isbn = ?";
             
@@ -262,14 +254,12 @@ public class BdOperaciones extends BdBase {
             PreparedStatement psStock = conexion.prepareStatement(sqlUpdateStock);
 
             for (Libro libro : carrito) {
-                // Insertar línea de compra
                 psLinea.setInt(1, idLinea++);
                 psLinea.setInt(2, idCompra);
                 psLinea.setString(3, libro.getIsbn());
                 psLinea.setDouble(4, libro.getPrecio());
                 psLinea.executeUpdate();
 
-                // RESTAR STOCK
                 psStock.setString(1, libro.getIsbn());
                 psStock.executeUpdate();
             }
@@ -277,14 +267,39 @@ public class BdOperaciones extends BdBase {
             psLinea.close();
             psStock.close();
 
-            conexion.commit(); // Confirmar cambios
+            conexion.commit();
             exito = true;
-            conexion.setAutoCommit(true); // Restaurar modo normal
+            conexion.setAutoCommit(true);
 
         } catch (Exception e) {
-            try { conexion.rollback(); } catch (Exception ex) {} // Deshacer cambios si falla
+            try { conexion.rollback(); } catch (Exception ex) {}
             e.printStackTrace();
         }
         return exito;
+    }
+
+    public List<Libro> getLibrosConAutor() {
+        List<Libro> lista = new ArrayList<>();
+        String sql = "SELECT l.isbn, l.titulo, l.precio, a.nombre FROM libros l " +
+                     "INNER JOIN autores a ON l.id_autor = a.id_autor";
+        try {
+            Statement stmt = conexion.createStatement();
+            ResultSet rs = stmt.executeQuery(sql);
+            while (rs.next()) {
+                Libro l = new Libro();
+                l.setIsbn(rs.getString("isbn"));
+                l.setTitulo(rs.getString("titulo"));
+                l.setPrecio(rs.getDouble("precio"));
+                // ¡OJO! Asegúrate de que tu clase Libro tenga este método setNombreAutor
+                // Si te da error en rojo aquí, es que te falta añadir ese campo en artupa.beans.Libro
+                l.setNombreAutor(rs.getString("nombre")); 
+                lista.add(l);
+            }
+            rs.close();
+            stmt.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return lista;
     }
 }

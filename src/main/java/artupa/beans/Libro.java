@@ -10,6 +10,7 @@ public class Libro {
     private int idAutor;
     private int idEditorial;
     private int idCategoria;
+    private String nombreAutor;
     
     // Constructor vacío (necesario)
     public Libro() {
@@ -82,6 +83,12 @@ public class Libro {
 
     public void setIdCategoria(int idCategoria) {
         this.idCategoria = idCategoria;
+    }
+    public String getNombreAutor() {
+        return nombreAutor;
+    }
+    public void setNombreAutor(String nombreAutor) {
+        this.nombreAutor = nombreAutor;
     }
     
     // Método auxiliar para mostrar el precio bonito (opcional)
