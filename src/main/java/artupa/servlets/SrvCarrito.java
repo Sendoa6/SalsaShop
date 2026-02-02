@@ -23,7 +23,7 @@ public class SrvCarrito extends HttpServlet {
             sesion.setAttribute("carrito", carrito);
         }
 
-        BdOperaciones bd = new BdOperaciones();
+        BdOperaciones bd = new BdOperaciones();   
         bd.abrirConexion();   
 
         if ("agregar".equals(accion)) {
