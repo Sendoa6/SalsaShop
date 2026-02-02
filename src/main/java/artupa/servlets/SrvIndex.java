@@ -1,65 +1,54 @@
-/*
- * Created on 23-may-2006
- *
- * TODO To change the template for this generated file go to
- * Window - Preferences - Java - Code Style - Code Templates
- */
 package artupa.servlets;
 
 import java.io.IOException;
-import javax.servlet.*;
-import javax.servlet.http.*;
+import java.util.List;
+import javax.servlet.ServletException;
+import javax.servlet.annotation.WebServlet;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
 
-import artupa.bd.BdBase;
 import artupa.bd.BdOperaciones;
-import artupa.config.Configuracion;
-import artupa.config.GestorConfiguracion;
+import artupa.beans.Libro;
 
-;
-
-/**
- * @author Administrador
- * 
- * TODO To change the template for this generated type comment go to Window -
- * Preferences - Java - Code Style - Code Templates
- */
+@WebServlet("/SrvIndex")
 public class SrvIndex extends HttpServlet {
-	/**
-	 * 
-	 */
-	private static final long serialVersionUID = 1L;
+    
+    protected void processRequest(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        
+        HttpSession session = request.getSession();
+        String user = request.getParameter("user");
+        String pass = request.getParameter("password");
+        
+        BdOperaciones bd = new BdOperaciones();
+        
+        // 1. Validar login (si viene del login.html) o recuperar de sesión
+        if (user != null && bd.validarUsuario(user, pass)) {
+            session.setAttribute("user", user);
+        }
 
-	public void init(ServletConfig config) throws ServletException {
-		super.init(config);
-		// String FICHERO_CONFIGURACION = "C:\\Tomcat
-		// 5.5\\webapps\\ArtupaWeb\\WEB-INF\\artupa.properties";
-		String FICHERO_CONFIGURACION = getServletConfig().getInitParameter(
-				"fichero_propiedades");
-		boolean cargaCorrecta = GestorConfiguracion
-				.cargarConfiguracion(FICHERO_CONFIGURACION);
-		if (!cargaCorrecta) {
-			System.out
-					.println("Fichero de configuraci�n no cargado correctamente");
-		}
-	}
+        // 2. LA CLAVE: Cargar los libros SIEMPRE antes de ir al menú
+        // Si no haces esto, el JSP recibirá una lista vacía
+        List<Libro> listaLibros = bd.getLibrosConAutor();
+        
+        // 3. Pasar la lista al objeto 'request' con el nombre "listaLibros"
+        request.setAttribute("listaLibros", listaLibros);
+        
+        // 4. Redirigir al JSP
+        request.getRequestDispatcher("menu.jsp").forward(request, response);
+    }
 
-	public void service(HttpServletRequest request, HttpServletResponse response)
-			throws IOException, ServletException {
-		String user = request.getParameter("user");
-		String password = request.getParameter("password");
-		BdOperaciones bdOperaciones = new BdOperaciones();
-		bdOperaciones.abrirConexion();
-		boolean correcto = bdOperaciones.validarUsuario(user, password);
-		bdOperaciones.cerrarConexion();
-		if (correcto) {
-			HttpSession sesion = request.getSession(true);
-			sesion.setAttribute("user", user);
-			ServletContext ct = getServletContext();
-			RequestDispatcher rd = ct.getRequestDispatcher("/menu.jsp");
-			rd.forward(request, response);
-		} else {
-			response.sendRedirect("login.html");
-		}
-	}
+    @Override
+    protected void doGet(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        processRequest(request, response);
+    }
 
+    @Override
+    protected void doPost(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        processRequest(request, response);
+    }
 }

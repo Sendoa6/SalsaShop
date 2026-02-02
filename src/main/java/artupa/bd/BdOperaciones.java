@@ -288,34 +288,27 @@ public class BdOperaciones extends BdBase {
         return exito;
     }
     public List<Libro> getLibrosConAutor() {
-        List<Libro> libros = new ArrayList<Libro>();
-        // La consulta une la tabla libros (l) con autores (a) usando el id_autor
-        String sql = "SELECT l.isbn, l.titulo, l.precio, l.stock, l.id_autor, a.nombre " +
-                     "FROM libros l " +
+        List<Libro> lista = new ArrayList<>();
+        // Usamos un JOIN para traer el nombre del autor de la tabla 'autores'
+        String sql = "SELECT l.isbn, l.titulo, l.precio, a.nombre FROM libros l " +
                      "INNER JOIN autores a ON l.id_autor = a.id_autor";
         try {
             Statement stmt = conexion.createStatement();
             ResultSet rs = stmt.executeQuery(sql);
-            
             while (rs.next()) {
                 Libro l = new Libro();
                 l.setIsbn(rs.getString("isbn"));
                 l.setTitulo(rs.getString("titulo"));
                 l.setPrecio(rs.getDouble("precio"));
-                l.setStock(rs.getInt("stock"));
-                l.setIdAutor(rs.getInt("id_autor"));
-                
-                // IMPORTANTE: Guardamos el nombre del autor en el campo nuevo del Bean Libro
+                // IMPORTANTE: Asegúrate de tener el método setNombreAutor en tu clase Libro
                 l.setNombreAutor(rs.getString("nombre")); 
-                
-                libros.add(l);
+                lista.add(l);
             }
             rs.close();
             stmt.close();
         } catch (Exception e) {
             e.printStackTrace();
-            System.out.println("Error en getLibrosConAutor: " + e.getMessage());
         }
-        return libros;
+        return lista;
     }
 }
