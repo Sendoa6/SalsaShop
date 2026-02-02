@@ -1,8 +1,8 @@
 package artupa.servlets;
 
 import java.io.IOException;
+import java.sql.Date; 
 import javax.servlet.ServletException;
-import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.*;
 import artupa.bd.BdOperaciones;
 import artupa.beans.Cliente;
@@ -25,12 +25,14 @@ public class SrvRegistroUsuario extends HttpServlet {
         String apellido2 = request.getParameter("apellido2");
         String direccion = request.getParameter("direccion");
         
+        // 2. NUEVO: Recogemos la fecha como String (formato yyyy-MM-dd que envía el HTML)
+        String fechaStr = request.getParameter("fechaNacimiento");
+        
         HttpSession sesion = request.getSession();
 
         // 1. Validaciones básicas
         if (usuario == null || pass == null || email == null || dni == null || nombre == null || apellido1 == null) {
             sesion.setAttribute("error", "Faltan datos obligatorios.");
-            // CAMBIO 1: Aquí ponía registro.jsp, ahora ponemos el nombre correcto
             response.sendRedirect("registroUsuario.jsp"); 
             return;
         }
@@ -40,7 +42,6 @@ public class SrvRegistroUsuario extends HttpServlet {
 
         if (!conexionAbierta) {
             sesion.setAttribute("error", "Error de conexión con la base de datos.");
-            // CAMBIO 2: Nombre correcto
             response.sendRedirect("registroUsuario.jsp");
             return;
         }
@@ -49,7 +50,6 @@ public class SrvRegistroUsuario extends HttpServlet {
         if (bd.existeUsuario(usuario, email)) {
             bd.cerrarConexion();
             sesion.setAttribute("error", "El usuario o el email ya existen.");
-            // CAMBIO 3: Nombre correcto
             response.sendRedirect("registroUsuario.jsp");
             return;
         }
@@ -61,6 +61,20 @@ public class SrvRegistroUsuario extends HttpServlet {
         c.setApellido1(apellido1);
         c.setApellido2(apellido2);
         c.setDireccion(direccion);
+        
+        // 3. NUEVO: Convertimos el String a Date SQL
+        if (fechaStr != null && !fechaStr.isEmpty()) {
+            try {
+                // Date.valueOf convierte automáticamente "yyyy-MM-dd" a java.sql.Date
+                c.setFechaNacimiento(Date.valueOf(fechaStr));
+            } catch (Exception e) {
+                // Si la fecha viene mal, la dejamos como null
+                c.setFechaNacimiento(null);
+            }
+        } else {
+            c.setFechaNacimiento(null);
+        }
+
         c.setUsuario(usuario);
         c.setEmail(email);
         c.setPassword(pass); 

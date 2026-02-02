@@ -9,28 +9,24 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     
     <style>
-        /* Estilos generales idénticos al ejemplo PHP */
+        /* Estilos generales */
         body {
             background-color: #F6E3DC; /* Fondo Beige */
             font-family: Arial, sans-serif;
         }
-
         .card {
             border: none;
             box-shadow: 0 4px 12px rgba(0,0,0,0.1);
             border-radius: 12px;
             background-color: white;
         }
-
         .form-control {
             margin-bottom: 10px;
         }
-
         /* Clase para forzar visualmente minúsculas */
         .minusculas {
             text-transform: lowercase;
         }
-
         /* Estilo del botón rojo */
         .botonRegistroSesion {
             background-color: #E94B3C;
@@ -42,11 +38,9 @@
             font-weight: bold;
             transition: background-color 0.3s;
         }
-
         .botonRegistroSesion:hover {
             background-color: #c23e32;
         }
-
         /* Estilo de los enlaces */
         a {
             color: #E94B3C;
@@ -58,7 +52,6 @@
             text-decoration: underline;
             color: #c23e32;
         }
-
         /* Ajuste para los botones del ojo dentro del input */
         .input-group .btn {
             border: 1px solid #dee2e6;
@@ -97,7 +90,6 @@
                     session.removeAttribute("success");
                 }
             %>
-
             <form action="SrvRegistroUsuario" method="post" name="formRegistro">
                 
                 <div class="mb-3">
@@ -119,7 +111,11 @@
 				        <label class="form-label">Segundo Apellido:</label>
 				        <input type="text" name="apellido2" class="form-control"> </div>
 				</div>
-				                
+
+                <div class="mb-3">
+                    <label class="form-label">Fecha de Nacimiento:</label>
+                    <input type="date" name="fechaNacimiento" class="form-control" required>
+                </div>
                 <div class="mb-3">
                     <label class="form-label">Dirección:</label>
                     <input type="text" name="direccion" class="form-control">
@@ -160,32 +156,22 @@
                         </button>
                     </div>
                 </div>
-
                 <button id="registrarse" type="submit" class="botonRegistroSesion w-100">Registrarse</button>
                 
-                <p class="mt-3 text-center">¿Ya tienes usuario? <a href="inicio_sesion.html">Inicia sesión</a></p>
+                <p class="mt-3 text-center">¿Ya tienes usuario? <a href="login.html">Inicia sesión</a></p>
             </form>
         </div>
     </div>
-
     <script>
-        // Solo conservamos la lógica para mostrar/ocultar contraseñas
+        // Lógica mostrar/ocultar contraseñas
         document.getElementById('btnVerPass').addEventListener('click', function() {
             const input = document.getElementById('contraseña');
-            if (input.type === "password") {
-                input.type = "text";
-            } else {
-                input.type = "password";
-            }
+            input.type = (input.type === "password") ? "text" : "password";
         });
         
         document.getElementById('btnVerPass2').addEventListener('click', function() {
             const input = document.getElementById('repetirContraseña');
-            if (input.type === "password") {
-                input.type = "text";
-            } else {
-                input.type = "password";
-            }
+            input.type = (input.type === "password") ? "text" : "password";
         });
     </script>
 </body>
