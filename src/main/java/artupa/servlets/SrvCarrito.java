@@ -24,7 +24,7 @@ public class SrvCarrito extends HttpServlet {
         }
 
         BdOperaciones bd = new BdOperaciones();
-        bd.abrirConexion();
+        bd.abrirConexion();   
 
         if ("agregar".equals(accion)) {
             // --- LÓGICA DE AÑADIR ---
