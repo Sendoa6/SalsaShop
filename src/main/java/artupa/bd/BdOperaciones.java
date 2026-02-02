@@ -4,6 +4,7 @@ import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 import artupa.beans.Cliente;
+import artupa.beans.Libro;
 
 public class BdOperaciones extends BdBase {
 
@@ -11,15 +12,13 @@ public class BdOperaciones extends BdBase {
         super();
     }
 
-    // 1. NUEVAS FUNCIONES PARA EL REGISTRO (Vitales para registro.jsp)
-
-    /**
-     * Comprueba si el usuario y contraseña coinciden para el LOGIN.
-     */
+    // ==========================================
+    // 1. FUNCIONES PARA EL REGISTRO Y LOGIN
+    // ==========================================
+    
     public boolean validarUsuario(String user, String password) {
         boolean correcto = false;
         try {
-            // Ahora buscamos en la tabla 'clientes' que es donde guardamos todo
             String sql = "SELECT id_cliente FROM clientes WHERE usuario = ? AND password = ?";
             PreparedStatement ps = conexion.prepareStatement(sql);
             ps.setString(1, user);
@@ -37,9 +36,6 @@ public class BdOperaciones extends BdBase {
         return correcto;
     }
 
-    /**
-     * Comprueba si ya existe un usuario o email para evitar duplicados.
-     */
     public boolean existeUsuario(String usuario, String email) {
         boolean existe = false;
         try {
@@ -60,9 +56,6 @@ public class BdOperaciones extends BdBase {
         return existe;
     }
 
-    /**
-     * Calcula el siguiente ID disponible (porque tu tabla no es AutoIncrement).
-     */
     public int obtenerNuevoId() {
         int maxId = 0;
         try {
@@ -79,15 +72,10 @@ public class BdOperaciones extends BdBase {
         return maxId + 1;
     }
 
-    /**
-     * Inserta un cliente con TODOS los campos nuevos.
-     */
     public boolean registrarCliente(Cliente c) {
         boolean correcto = true;
         try {
-            int nuevoId = obtenerNuevoId(); // Calculamos el ID automáticamente
-            
-            // La SQL debe coincidir con tus columnas de la base de datos
+            int nuevoId = obtenerNuevoId();
             String sql = "INSERT INTO clientes (id_cliente, dni, nombre, apellido1, apellido2, direccion, fecha_nacimiento, email, usuario, password) "
                        + "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
             
@@ -97,13 +85,12 @@ public class BdOperaciones extends BdBase {
             ps.setString(2, c.getDni());
             ps.setString(3, c.getNombre());
             ps.setString(4, c.getApellido1());
-            ps.setString(5, c.getApellido2()); // Si es null, se guarda como NULL
+            ps.setString(5, c.getApellido2());
             ps.setString(6, c.getDireccion());
-            ps.setDate(7, c.getFechaNacimiento()); // Puede ser null si no la pediste
+            ps.setDate(7, c.getFechaNacimiento());
             ps.setString(8, c.getEmail());
             ps.setString(9, c.getUsuario());
             ps.setString(10, c.getPassword());
-
             ps.executeUpdate();
             ps.close();
             
@@ -115,7 +102,9 @@ public class BdOperaciones extends BdBase {
         return correcto;
     }
 
-    // 2. FUNCIONES DE LISTADO Y MODIFICACIÓN (Actualizadas a la nueva tabla)
+    // ==========================================
+    // 2. FUNCIONES DE CLIENTES (CRUD)
+    // ==========================================
 
     public List<Cliente> getClientes() {
         List<Cliente> clientes = new ArrayList<Cliente>();
@@ -135,7 +124,6 @@ public class BdOperaciones extends BdBase {
                 c.setFechaNacimiento(rs.getDate("fecha_nacimiento"));
                 c.setEmail(rs.getString("email"));
                 c.setUsuario(rs.getString("usuario"));
-                
                 clientes.add(c);
             }
             rs.close();
@@ -180,15 +168,13 @@ public class BdOperaciones extends BdBase {
         try {
             String sql = "UPDATE clientes SET nombre=?, apellido1=?, apellido2=?, direccion=?, email=?, usuario=? WHERE dni=?";
             PreparedStatement ps = conexion.prepareStatement(sql);
-            
             ps.setString(1, c.getNombre());
             ps.setString(2, c.getApellido1());
             ps.setString(3, c.getApellido2());
             ps.setString(4, c.getDireccion());
             ps.setString(5, c.getEmail());
             ps.setString(6, c.getUsuario());
-            ps.setString(7, c.getDni()); // El WHERE va al final
-
+            ps.setString(7, c.getDni());
             ps.executeUpdate();
             ps.close();
         } catch (Exception e) {
@@ -212,5 +198,93 @@ public class BdOperaciones extends BdBase {
         }
         return correcto;
     }
-    
+
+    // ==========================================
+    // 3. NUEVAS FUNCIONES PARA EL CARRITO (CORREGIDAS)
+    // ==========================================
+
+    // Método para recuperar un libro por su ISBN
+    public Libro obtenerLibro(String isbn) {
+        Libro l = null;
+        String sql = "SELECT * FROM libros WHERE isbn = ?";
+        try {
+            // CORREGIDO: Usamos 'conexion' en vez de 'con'
+            PreparedStatement ps = conexion.prepareStatement(sql);
+            ps.setString(1, isbn);
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) {
+                l = new Libro();
+                l.setIsbn(rs.getString("isbn"));
+                l.setTitulo(rs.getString("titulo"));
+                l.setPrecio(rs.getDouble("precio"));
+                l.setStock(rs.getInt("stock"));
+            }
+            rs.close();
+            ps.close();
+        } catch (Exception e) { e.printStackTrace(); }
+        return l;
+    }
+
+    // Método para PAGAR: Inserta la compra y RESTA el stock
+    public boolean realizarCompra(Cliente cliente, ArrayList<Libro> carrito) {
+        boolean exito = false;
+        try {
+            // CORREGIDO: Usamos 'conexion' en todos los pasos
+            conexion.setAutoCommit(false); // Inicio transacción
+
+            // A) Calcular ID de Compra
+            int idCompra = 1;
+            Statement st = conexion.createStatement();
+            ResultSet rsId = st.executeQuery("SELECT MAX(id_compra) FROM compras");
+            if (rsId.next()) idCompra = rsId.getInt(1) + 1;
+            rsId.close();
+
+            // B) Insertar en tabla COMPRAS
+            String sqlCompra = "INSERT INTO compras (id_compra, id_cliente, fecha) VALUES (?, ?, CURDATE())";
+            PreparedStatement psCompra = conexion.prepareStatement(sqlCompra);
+            psCompra.setInt(1, idCompra);
+            psCompra.setInt(2, cliente.getIdCliente());
+            psCompra.executeUpdate();
+            psCompra.close();
+            
+            // C) Preparar IDs para lineas de compra
+            int idLinea = 1;
+            ResultSet rsIdLinea = st.executeQuery("SELECT MAX(id_linea) FROM linea_compra");
+            if (rsIdLinea.next()) idLinea = rsIdLinea.getInt(1) + 1;
+            rsIdLinea.close();
+            st.close();
+
+            // D) Insertar detalle y restar stock
+            String sqlLinea = "INSERT INTO linea_compra (id_linea, id_compra, isbn, cantidad, precio_unitario) VALUES (?, ?, ?, 1, ?)";
+            String sqlUpdateStock = "UPDATE libros SET stock = stock - 1 WHERE isbn = ?";
+            
+            PreparedStatement psLinea = conexion.prepareStatement(sqlLinea);
+            PreparedStatement psStock = conexion.prepareStatement(sqlUpdateStock);
+
+            for (Libro libro : carrito) {
+                // Insertar línea de compra
+                psLinea.setInt(1, idLinea++);
+                psLinea.setInt(2, idCompra);
+                psLinea.setString(3, libro.getIsbn());
+                psLinea.setDouble(4, libro.getPrecio());
+                psLinea.executeUpdate();
+
+                // RESTAR STOCK
+                psStock.setString(1, libro.getIsbn());
+                psStock.executeUpdate();
+            }
+            
+            psLinea.close();
+            psStock.close();
+
+            conexion.commit(); // Confirmar cambios
+            exito = true;
+            conexion.setAutoCommit(true); // Restaurar modo normal
+
+        } catch (Exception e) {
+            try { conexion.rollback(); } catch (Exception ex) {} // Deshacer cambios si falla
+            e.printStackTrace();
+        }
+        return exito;
+    }
 }
