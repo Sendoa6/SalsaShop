@@ -1,5 +1,4 @@
 package artupa.bd;
-
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
@@ -7,12 +6,10 @@ import artupa.beans.Cliente;
 import artupa.beans.Libro;
 
 public class BdOperaciones extends BdBase {
-
     public BdOperaciones() {
         super();
         abrirConexion();
     }
-
     // ==========================================
     // 1. FUNCIONES PARA EL REGISTRO Y LOGIN
     // ==========================================
@@ -36,7 +33,6 @@ public class BdOperaciones extends BdBase {
         }
         return correcto;
     }
-
     public boolean existeUsuario(String usuario, String email) {
         boolean existe = false;
         try {
@@ -56,7 +52,6 @@ public class BdOperaciones extends BdBase {
         }
         return existe;
     }
-
     public int obtenerNuevoId() {
         int maxId = 0;
         try {
@@ -72,7 +67,6 @@ public class BdOperaciones extends BdBase {
         }
         return maxId + 1;
     }
-
     public boolean registrarCliente(Cliente c) {
         boolean correcto = true;
         try {
@@ -102,11 +96,9 @@ public class BdOperaciones extends BdBase {
         }
         return correcto;
     }
-
     // ==========================================
     // 2. FUNCIONES DE CLIENTES (CRUD)
     // ==========================================
-
     public List<Cliente> getClientes() {
         List<Cliente> clientes = new ArrayList<Cliente>();
         try {
@@ -134,7 +126,6 @@ public class BdOperaciones extends BdBase {
         }
         return clientes;
     }
-
     public Cliente getCliente(String dni) {
         Cliente c = null;
         try {
@@ -163,7 +154,6 @@ public class BdOperaciones extends BdBase {
         }
         return c;
     }
-
     public boolean modificarCliente(Cliente c) {
         boolean correcto = true;
         try {
@@ -184,7 +174,6 @@ public class BdOperaciones extends BdBase {
         }
         return correcto;
     }
-
     public boolean eliminarCliente(String dni) {
         boolean correcto = true;
         try {
@@ -199,11 +188,9 @@ public class BdOperaciones extends BdBase {
         }
         return correcto;
     }
-
     // ==========================================
     // 3. NUEVAS FUNCIONES PARA EL CARRITO
     // ==========================================
-
     public Libro obtenerLibro(String isbn) {
         Libro l = null;
         String sql = "SELECT * FROM libros WHERE isbn = ?";
@@ -223,18 +210,33 @@ public class BdOperaciones extends BdBase {
         } catch (Exception e) { e.printStackTrace(); }
         return l;
     }
+    
+    // MÉTODO NUEVO NECESARIO PARA PAGAR
+    public int getIdClientePorUsuario(String usuario) {
+        int id = 0;
+        try {
+            String sql = "SELECT id_cliente FROM clientes WHERE usuario = ?";
+            PreparedStatement ps = conexion.prepareStatement(sql);
+            ps.setString(1, usuario);
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) {
+                id = rs.getInt("id_cliente");
+            }
+            rs.close();
+            ps.close();
+        } catch (Exception e) { e.printStackTrace(); }
+        return id;
+    }
 
     public boolean realizarCompra(Cliente cliente, ArrayList<Libro> carrito) {
         boolean exito = false;
         try {
             conexion.setAutoCommit(false);
-
             int idCompra = 1;
             Statement st = conexion.createStatement();
             ResultSet rsId = st.executeQuery("SELECT MAX(id_compra) FROM compras");
             if (rsId.next()) idCompra = rsId.getInt(1) + 1;
             rsId.close();
-
             String sqlCompra = "INSERT INTO compras (id_compra, id_cliente, fecha) VALUES (?, ?, CURDATE())";
             PreparedStatement psCompra = conexion.prepareStatement(sqlCompra);
             psCompra.setInt(1, idCompra);
@@ -247,41 +249,34 @@ public class BdOperaciones extends BdBase {
             if (rsIdLinea.next()) idLinea = rsIdLinea.getInt(1) + 1;
             rsIdLinea.close();
             st.close();
-
             String sqlLinea = "INSERT INTO linea_compra (id_linea, id_compra, isbn, cantidad, precio_unitario) VALUES (?, ?, ?, 1, ?)";
             String sqlUpdateStock = "UPDATE libros SET stock = stock - 1 WHERE isbn = ?";
             
             PreparedStatement psLinea = conexion.prepareStatement(sqlLinea);
             PreparedStatement psStock = conexion.prepareStatement(sqlUpdateStock);
-
             for (Libro libro : carrito) {
                 psLinea.setInt(1, idLinea++);
                 psLinea.setInt(2, idCompra);
                 psLinea.setString(3, libro.getIsbn());
                 psLinea.setDouble(4, libro.getPrecio());
                 psLinea.executeUpdate();
-
                 psStock.setString(1, libro.getIsbn());
                 psStock.executeUpdate();
             }
             
             psLinea.close();
             psStock.close();
-
             conexion.commit();
             exito = true;
             conexion.setAutoCommit(true);
-
         } catch (Exception e) {
             try { conexion.rollback(); } catch (Exception ex) {}
             e.printStackTrace();
         }
         return exito;
     }
-
     public List<Libro> getLibrosConAutor() {
         List<Libro> lista = new ArrayList<>();
-        // LEFT JOIN garantiza que salgan todos los libros del script SQL
         String sql = "SELECT l.isbn, l.titulo, l.precio, a.nombre FROM libros l " +
                      "LEFT JOIN autores a ON l.id_autor = a.id_autor";
         try {

@@ -3,66 +3,95 @@ package artupa.servlets;
 import java.io.IOException;
 import java.util.ArrayList;
 import javax.servlet.ServletException;
-import javax.servlet.annotation.WebServlet; 
-import javax.servlet.http.*;
+import javax.servlet.annotation.WebServlet;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
+
 import artupa.bd.BdOperaciones;
 import artupa.beans.Cliente;
 import artupa.beans.Libro;
 
+@WebServlet("/SrvCarrito")
 public class SrvCarrito extends HttpServlet {
     private static final long serialVersionUID = 1L;
 
-    protected void service(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-        String accion = request.getParameter("accion");
-        HttpSession sesion = request.getSession();
+    protected void processRequest(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
         
-        // 1. Inicializar el carrito en la sesión si no existe
-        ArrayList<Libro> carrito = (ArrayList<Libro>) sesion.getAttribute("carrito");
+        HttpSession session = request.getSession();
+        ArrayList<Libro> carrito = (ArrayList<Libro>) session.getAttribute("carrito");
         if (carrito == null) {
             carrito = new ArrayList<Libro>();
-            sesion.setAttribute("carrito", carrito);
+            session.setAttribute("carrito", carrito);
         }
 
-        BdOperaciones bd = new BdOperaciones();   
-        bd.abrirConexion();   
+        String accion = request.getParameter("accion");
+        String isbn = request.getParameter("isbn");
 
-        if ("agregar".equals(accion)) {
-            // --- LÓGICA DE AÑADIR ---
-            String isbn = request.getParameter("isbn");
-            Libro l = bd.obtenerLibro(isbn);
-            
-            if (l != null && l.getStock() > 0) {
-                carrito.add(l); // Lo añadimos a la lista
-            }
-            bd.cerrarConexion();
-            // Redirigimos al JSP del carrito para que el usuario vea lo que añadió
-            response.sendRedirect("carrito.jsp"); 
+        BdOperaciones bd = new BdOperaciones(); 
 
-        } else if ("pagar".equals(accion)) {
-            // --- LÓGICA DE PAGAR ---
-            Cliente cliente = (Cliente) sesion.getAttribute("usuarioLogueado");
-            
-            // Si no está logueado, lo mandamos al login
-            if (cliente == null) {
-                bd.cerrarConexion();
-                response.sendRedirect("login.html"); 
-                return;
-            }
+        try {
+            if (accion != null) {
+                switch (accion) {
+                    case "anadir":
+                        Libro l = bd.obtenerLibro(isbn);
+                        if (l != null) {
+                            carrito.add(l);
+                        }
+                        // CAMBIO CLAVE: Volvemos al índice con el mensaje de éxito
+                        response.sendRedirect("SrvIndex?msg=ok");
+                        break;
 
-            // Realizamos la compra en BD
-            boolean exito = bd.realizarCompra(cliente, carrito);
-            bd.cerrarConexion();
+                    case "eliminar":
+                        for (int i = 0; i < carrito.size(); i++) {
+                            if (carrito.get(i).getIsbn().equals(isbn)) {
+                                carrito.remove(i);
+                                break;
+                            }
+                        }
+                        response.sendRedirect("carrito.jsp");
+                        break;
 
-            if (exito) {
-                sesion.removeAttribute("carrito"); // Vaciamos el carrito
-                // Redirigir a una página de éxito o al inicio con un mensaje
-                response.sendRedirect("carrito.jsp?mensaje=compra_ok"); 
+                    case "pagar":
+                        String nombreUsuario = (String) session.getAttribute("user");
+                        
+                        if (nombreUsuario == null) {
+                            response.sendRedirect("login.html");
+                            return;
+                        }
+
+                        // Recuperamos el ID real del cliente usando el nuevo método de BdOperaciones
+                        int idCliente = bd.getIdClientePorUsuario(nombreUsuario);
+                        
+                        Cliente c = new Cliente();
+                        c.setIdCliente(idCliente);
+                        
+                        boolean exito = bd.realizarCompra(c, carrito);
+                        
+                        if (exito) {
+                            carrito.clear();
+                            response.sendRedirect("carrito.jsp?mensaje=exito");
+                        } else {
+                            response.sendRedirect("carrito.jsp?mensaje=error");
+                        }
+                        break;
+                }
             } else {
-                response.sendRedirect("carrito.jsp?error=fallo_db");
+                response.sendRedirect("carrito.jsp");
             }
-        } else if ("vaciar".equals(accion)) {
-            sesion.removeAttribute("carrito");
-            response.sendRedirect("carrito.jsp");
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            bd.cerrarConexion();
         }
+    }
+
+    protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        processRequest(request, response);
+    }
+    protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        processRequest(request, response);
     }
 }
