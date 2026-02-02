@@ -7,6 +7,7 @@ import javax.servlet.http.*;
 import artupa.bd.BdOperaciones;
 import artupa.beans.Cliente;
 
+// IMPORTANTE: NO pongas @WebServlet aquí porque ya lo tienes en el web.xml
 public class SrvRegistroUsuario extends HttpServlet {
     
     private static final long serialVersionUID = 1L;
@@ -24,8 +25,6 @@ public class SrvRegistroUsuario extends HttpServlet {
         String apellido1 = request.getParameter("apellido1");
         String apellido2 = request.getParameter("apellido2");
         String direccion = request.getParameter("direccion");
-        
-        // 2. NUEVO: Recogemos la fecha como String (formato yyyy-MM-dd que envía el HTML)
         String fechaStr = request.getParameter("fechaNacimiento");
         
         HttpSession sesion = request.getSession();
@@ -46,47 +45,51 @@ public class SrvRegistroUsuario extends HttpServlet {
             return;
         }
 
-        // 2. Comprobar duplicados
-        if (bd.existeUsuario(usuario, email)) {
-            bd.cerrarConexion();
-            sesion.setAttribute("error", "El usuario o el email ya existen.");
-            response.sendRedirect("registroUsuario.jsp");
-            return;
-        }
+        try {
+            // 2. Comprobar duplicados
+            if (bd.existeUsuario(usuario, email)) {
+                bd.cerrarConexion();
+                sesion.setAttribute("error", "El usuario o el email ya existen.");
+                response.sendRedirect("registroUsuario.jsp");
+                return;
+            }
 
-        // 3. Crear objeto y guardar
-        Cliente c = new Cliente();
-        c.setDni(dni);
-        c.setNombre(nombre);
-        c.setApellido1(apellido1);
-        c.setApellido2(apellido2);
-        c.setDireccion(direccion);
-        
-        // 3. NUEVO: Convertimos el String a Date SQL
-        if (fechaStr != null && !fechaStr.isEmpty()) {
-            try {
-                // Date.valueOf convierte automáticamente "yyyy-MM-dd" a java.sql.Date
-                c.setFechaNacimiento(Date.valueOf(fechaStr));
-            } catch (Exception e) {
-                // Si la fecha viene mal, la dejamos como null
+            // 3. Crear objeto y guardar
+            Cliente c = new Cliente();
+            c.setDni(dni);
+            c.setNombre(nombre);
+            c.setApellido1(apellido1);
+            c.setApellido2(apellido2);
+            c.setDireccion(direccion);
+            
+            if (fechaStr != null && !fechaStr.isEmpty()) {
+                try {
+                    c.setFechaNacimiento(Date.valueOf(fechaStr));
+                } catch (Exception e) {
+                    c.setFechaNacimiento(null);
+                }
+            } else {
                 c.setFechaNacimiento(null);
             }
-        } else {
-            c.setFechaNacimiento(null);
-        }
 
-        c.setUsuario(usuario);
-        c.setEmail(email);
-        c.setPassword(pass); 
-        
-        boolean registrado = bd.registrarCliente(c);
-        bd.cerrarConexion();
+            c.setUsuario(usuario);
+            c.setEmail(email);
+            c.setPassword(pass); 
+            
+            boolean registrado = bd.registrarCliente(c);
+            bd.cerrarConexion();
 
-        if (registrado) {
-            sesion.setAttribute("success", "¡Registro completado! Ahora inicia sesión.");
-            response.sendRedirect("login.html"); 
-        } else {
-            sesion.setAttribute("error", "Hubo un error al guardar en la base de datos.");
+            if (registrado) {
+                sesion.setAttribute("success", "¡Registro completado! Ahora inicia sesión.");
+                response.sendRedirect("login.html"); 
+            } else {
+                sesion.setAttribute("error", "Hubo un error al guardar en la base de datos.");
+                response.sendRedirect("registroUsuario.jsp");
+            }
+        } catch (Exception e) {
+            e.printStackTrace(); // Esto te dirá el error real en la consola roja
+            bd.cerrarConexion();
+            sesion.setAttribute("error", "Error interno en el servidor.");
             response.sendRedirect("registroUsuario.jsp");
         }
     }

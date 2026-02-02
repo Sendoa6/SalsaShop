@@ -25,17 +25,17 @@
         }
         .header-user { color: #555; font-size: 1.1em; }
         
-        .btn-ver-carrito {
+        .btn {
             background-color: #28a745; /* Verde */
             color: white;
-            padding: 10px 20px;
+            padding: 5px 10px;
             text-decoration: none;
             border-radius: 5px;
             font-weight: bold;
             box-shadow: 0 2px 5px rgba(0,0,0,0.2);
             transition: background 0.3s;
         }
-        .btn-ver-carrito:hover { background-color: #218838; }
+        .btn:hover { background-color: #218838; }
 
         .post { background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
         h2 { color: #B9372A; border-bottom: 2px solid #B9372A; padding-bottom: 10px; margin-top: 0; }
@@ -79,7 +79,11 @@
             👋 Conectado como: <b><%= (user != null) ? user : "Invitado" %></b>
         </div>
         <div>
-            <a href="carrito.jsp" class="btn-ver-carrito">🛒 Ver mi Carrito</a>
+            <a href="carrito.jsp" class="btn">Ver mi Carrito</a>
+            <a href="nuevoLibro.jsp" class="btn">Añadir Libro</a>
+            <a href="nuevoAutor.jsp" class="btn">Añadir Autor</a>
+            <a href="nuevaEditorial.jsp" class="btn">Añadir Editorial</a>
+            <a href="nuevaCategoria.jsp" class="btn">Añadir Categoría</a>
         </div>
     </div>
 

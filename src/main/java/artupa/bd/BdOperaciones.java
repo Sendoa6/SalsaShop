@@ -297,4 +297,65 @@ public class BdOperaciones extends BdBase {
         }
         return lista;
     }
+    
+    // ==========================================
+    // 3. NUEVAS FUNCIONES PARA LOS LIBROS
+    // ==========================================
+    
+    public boolean insertarLibro(String isbn, String titulo, double precio, int stock, int idAutor, int idEdi, int idCat) {
+        // La columna 'portada' la dejamos como null o vacía por ahora
+        String sql = "INSERT INTO libros (isbn, titulo, precio, stock, id_autor, id_editorial, id_categoria, portada) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
+        try {
+            PreparedStatement ps = conexion.prepareStatement(sql);
+            ps.setString(1, isbn);
+            ps.setString(2, titulo);
+            ps.setDouble(3, precio);
+            ps.setInt(4, stock);
+            ps.setInt(5, idAutor);
+            ps.setInt(6, idEdi);
+            ps.setInt(7, idCat);
+            ps.setString(8, "default.jpg"); // Valor por defecto para portada
+            
+            return ps.executeUpdate() > 0;
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+    
+    public boolean insertarAutor(String nombre) {
+        String sql = "INSERT INTO autores (nombre) VALUES (?)";
+        try {
+            PreparedStatement ps = conexion.prepareStatement(sql);
+            ps.setString(1, nombre);
+            return ps.executeUpdate() > 0;
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+    
+    public boolean insertarEditorial(String nombre) {
+        String sql = "INSERT INTO editoriales (nombre) VALUES (?)";
+        try {
+            PreparedStatement ps = conexion.prepareStatement(sql);
+            ps.setString(1, nombre);
+            return ps.executeUpdate() > 0;
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+    
+    public boolean insertarCategoria(String nombre) {
+        String sql = "INSERT INTO categorias (nombre) VALUES (?)";
+        try {
+            PreparedStatement ps = conexion.prepareStatement(sql);
+            ps.setString(1, nombre);
+            return ps.executeUpdate() > 0;
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
 }
