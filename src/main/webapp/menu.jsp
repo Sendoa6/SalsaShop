@@ -113,11 +113,18 @@
                         <td><b><%= l.getTitulo() %></b></td>
                         <td><%= (l.getNombreAutor() != null) ? l.getNombreAutor() : "ID: " + l.getIdAutor() %></td>
                         <td><%= l.getPrecio() %> €</td>
-                        <td style="text-align: center;">
-                            <a href="SrvCarrito?accion=anadir&isbn=<%= l.getIsbn() %>" class="btn-carrito">
-                               + Añadir
-                            </a>
-                        </td>
+						<td style="text-align: center;">
+						    <% if (l.getStock() > 0) { %>
+						        <a href="SrvCarrito?accion=anadir&isbn=<%= l.getIsbn() %>" class="btn-carrito">
+						           + Añadir
+						        </a>
+						        <br><small style="color: green;">Disponibles: <%= l.getStock() %></small>
+						    <% } else { %>
+						        <span style="color: red; font-weight: bold; background: #fdecea; padding: 5px; border-radius: 4px;">
+						            🚫 Agotado
+						        </span>
+						    <% } %>
+						</td>
                     </tr>
                 <% 
                     } 

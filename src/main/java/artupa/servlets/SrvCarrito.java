@@ -35,14 +35,19 @@ public class SrvCarrito extends HttpServlet {
         try {
             if (accion != null) {
                 switch (accion) {
-                    case "anadir":
-                        Libro l = bd.obtenerLibro(isbn);
-                        if (l != null) {
+                case "anadir":
+                    Libro l = bd.obtenerLibro(isbn);
+                    if (l != null) {
+                        // CAMBIO: Verificamos stock antes de añadir
+                        if (l.getStock() > 0) {
                             carrito.add(l);
+                            response.sendRedirect("SrvIndex?msg=ok");
+                        } else {
+                            // Si intenta añadir algo sin stock, redirigimos con error (opcional)
+                            response.sendRedirect("SrvIndex?msg=sin_stock"); 
                         }
-                        // CAMBIO CLAVE: Volvemos al índice con el mensaje de éxito
-                        response.sendRedirect("SrvIndex?msg=ok");
-                        break;
+                    }
+                    break;
 
                     case "eliminar":
                         for (int i = 0; i < carrito.size(); i++) {

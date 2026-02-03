@@ -230,54 +230,95 @@ public class BdOperaciones extends BdBase {
 
     public boolean realizarCompra(Cliente cliente, ArrayList<Libro> carrito) {
         boolean exito = false;
+        PreparedStatement psVerificar = null;
+        PreparedStatement psLinea = null;
+        PreparedStatement psStock = null;
+        
         try {
-            conexion.setAutoCommit(false);
+            conexion.setAutoCommit(false); // Iniciamos transacción
+
+            // 1. Crear la cabecera de la compra (igual que tenías)
             int idCompra = 1;
             Statement st = conexion.createStatement();
             ResultSet rsId = st.executeQuery("SELECT MAX(id_compra) FROM compras");
             if (rsId.next()) idCompra = rsId.getInt(1) + 1;
             rsId.close();
+            
             String sqlCompra = "INSERT INTO compras (id_compra, id_cliente, fecha) VALUES (?, ?, CURDATE())";
             PreparedStatement psCompra = conexion.prepareStatement(sqlCompra);
             psCompra.setInt(1, idCompra);
             psCompra.setInt(2, cliente.getIdCliente());
             psCompra.executeUpdate();
             psCompra.close();
-            
+
+            // Preparar consultas
             int idLinea = 1;
             ResultSet rsIdLinea = st.executeQuery("SELECT MAX(id_linea) FROM linea_compra");
             if (rsIdLinea.next()) idLinea = rsIdLinea.getInt(1) + 1;
             rsIdLinea.close();
             st.close();
+
             String sqlLinea = "INSERT INTO linea_compra (id_linea, id_compra, isbn, cantidad, precio_unitario) VALUES (?, ?, ?, 1, ?)";
             String sqlUpdateStock = "UPDATE libros SET stock = stock - 1 WHERE isbn = ?";
-            
-            PreparedStatement psLinea = conexion.prepareStatement(sqlLinea);
-            PreparedStatement psStock = conexion.prepareStatement(sqlUpdateStock);
+            // CAMBIO: Consulta para verificar stock en tiempo real
+            String sqlCheckStock = "SELECT stock FROM libros WHERE isbn = ?";
+
+            psLinea = conexion.prepareStatement(sqlLinea);
+            psStock = conexion.prepareStatement(sqlUpdateStock);
+            psVerificar = conexion.prepareStatement(sqlCheckStock);
+
             for (Libro libro : carrito) {
+                // A. VERIFICAR STOCK ANTES DE NADA
+                psVerificar.setString(1, libro.getIsbn());
+                ResultSet rsStock = psVerificar.executeQuery();
+                
+                int stockActual = 0;
+                if (rsStock.next()) {
+                    stockActual = rsStock.getInt("stock");
+                }
+                rsStock.close();
+
+                if (stockActual < 1) {
+                    // ¡PROBLEMA! No hay stock. Cancelamos TODO.
+                    throw new Exception("Stock insuficiente para el libro: " + libro.getTitulo());
+                }
+
+                // B. Si hay stock, insertamos línea
                 psLinea.setInt(1, idLinea++);
                 psLinea.setInt(2, idCompra);
                 psLinea.setString(3, libro.getIsbn());
                 psLinea.setDouble(4, libro.getPrecio());
                 psLinea.executeUpdate();
+
+                // C. Restamos stock
                 psStock.setString(1, libro.getIsbn());
                 psStock.executeUpdate();
             }
-            
-            psLinea.close();
-            psStock.close();
-            conexion.commit();
+
+            conexion.commit(); // Todo bien, guardamos cambios
             exito = true;
-            conexion.setAutoCommit(true);
+
         } catch (Exception e) {
-            try { conexion.rollback(); } catch (Exception ex) {}
+            try { 
+                conexion.rollback(); // Si algo falla (incluido el stock), deshacemos todo
+                System.out.println("Transacción cancelada: " + e.getMessage());
+            } catch (Exception ex) {}
             e.printStackTrace();
+        } finally {
+            try {
+                if(psVerificar != null) psVerificar.close();
+                if(psLinea != null) psLinea.close();
+                if(psStock != null) psStock.close();
+                conexion.setAutoCommit(true);
+            } catch (Exception e) { e.printStackTrace(); }
         }
         return exito;
     }
     public List<Libro> getLibrosConAutor() {
         List<Libro> lista = new ArrayList<>();
-        String sql = "SELECT l.isbn, l.titulo, l.precio, a.nombre FROM libros l " +
+        
+        // 1. OJO AQUÍ: Asegúrate de haber escrito ", l.stock" en el SQL
+        String sql = "SELECT l.isbn, l.titulo, l.precio, l.stock, a.nombre FROM libros l " +
                      "LEFT JOIN autores a ON l.id_autor = a.id_autor";
         try {
             Statement stmt = conexion.createStatement();
@@ -287,8 +328,16 @@ public class BdOperaciones extends BdBase {
                 l.setIsbn(rs.getString("isbn"));
                 l.setTitulo(rs.getString("titulo"));
                 l.setPrecio(rs.getDouble("precio"));
+                
+                // 2. ¡ESTA ES LA LÍNEA QUE TE FALTA!
+                // Sin esto, el stock se queda en 0 y el JSP piensa que está agotado.
+                l.setStock(rs.getInt("stock")); 
+                
                 l.setNombreAutor(rs.getString("nombre")); 
                 lista.add(l);
+                
+                // Pista para ti: Esto imprimirá en la consola de Eclipse el stock que lee
+                System.out.println("Libro: " + l.getTitulo() + " - Stock leido: " + l.getStock());
             }
             rs.close();
             stmt.close();
