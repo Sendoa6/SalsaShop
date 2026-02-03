@@ -301,6 +301,35 @@ public class BdOperaciones extends BdBase {
     // ==========================================
     // 3. NUEVAS FUNCIONES PARA LOS LIBROS
     // ==========================================
+    public ResultSet getAutores() {
+        try {
+            String sql = "SELECT id_autor, nombre FROM autores"; // Ajusta 'nombre' si tu columna se llama 'nombre_autor'
+            Statement st = conexion.createStatement();
+            return st.executeQuery(sql);
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+    public ResultSet getEditoriales() {
+        try {
+            String sql = "SELECT id_editorial, nombre FROM editoriales";
+            Statement st = conexion.createStatement();
+            return st.executeQuery(sql);
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+    public ResultSet getCategorias() {
+        try {
+            String sql = "SELECT id_categoria, nombre FROM categorias";
+            Statement st = conexion.createStatement();
+            return st.executeQuery(sql);
+        } catch (Exception e) {
+            return null;
+        }
+    }
     
     public boolean insertarLibro(String isbn, String titulo, double precio, int stock, int idAutor, int idEdi, int idCat) {
         // La columna 'portada' la dejamos como null o vacía por ahora
