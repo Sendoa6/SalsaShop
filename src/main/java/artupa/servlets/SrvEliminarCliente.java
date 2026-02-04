@@ -42,7 +42,7 @@ public class SrvEliminarCliente extends HttpServlet {
 		}
 		else
 		{
-			response.sendRedirect("login.html");
+			response.sendRedirect("login.jsp");
 		}
 	}
 

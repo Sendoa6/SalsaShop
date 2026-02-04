@@ -1,7 +1,7 @@
 package artupa.beans;
 
 import java.io.Serializable;
-import java.sql.Date; 
+import java.sql.Date;
 
 public class Cliente implements Serializable {
     
@@ -17,13 +17,17 @@ public class Cliente implements Serializable {
     private String email;
     private String usuario;
     private String password;
+    
+    // --- NUEVO CAMPO PARA EL ROL ---
+    private int admin; 
 
     public Cliente() {
         super();
     }
 
+    // Constructor completo (Actualizado con admin)
     public Cliente(int idCliente, String dni, String nombre, String apellido1, String apellido2, 
-                   String direccion, Date fechaNacimiento, String email, String usuario, String password) {
+                   String direccion, Date fechaNacimiento, String email, String usuario, String password, int admin) {
         this.idCliente = idCliente;
         this.dni = dni;
         this.nombre = nombre;
@@ -34,6 +38,7 @@ public class Cliente implements Serializable {
         this.email = email;
         this.usuario = usuario;
         this.password = password;
+        this.admin = admin;
     }
 
     // ================= GETTERS Y SETTERS =================
@@ -67,4 +72,8 @@ public class Cliente implements Serializable {
 
     public String getPassword() { return password; }
     public void setPassword(String password) { this.password = password; }
+
+    // --- NUEVOS GETTER Y SETTER PARA ADMIN ---
+    public int getAdmin() { return admin; }
+    public void setAdmin(int admin) { this.admin = admin; }
 }

@@ -63,7 +63,7 @@ public class SrvCarrito extends HttpServlet {
                         String nombreUsuario = (String) session.getAttribute("user");
                         
                         if (nombreUsuario == null) {
-                            response.sendRedirect("login.html");
+                            response.sendRedirect("login.jsp");
                             return;
                         }
 

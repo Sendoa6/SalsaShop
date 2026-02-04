@@ -7,7 +7,6 @@ import javax.servlet.http.*;
 import artupa.bd.BdOperaciones;
 import artupa.beans.Cliente;
 
-// IMPORTANTE: NO pongas @WebServlet aquí porque ya lo tienes en el web.xml
 public class SrvRegistroUsuario extends HttpServlet {
     
     private static final long serialVersionUID = 1L;
@@ -17,6 +16,7 @@ public class SrvRegistroUsuario extends HttpServlet {
         
         request.setCharacterEncoding("UTF-8");
         
+        // 1. Recoger parámetros
         String usuario = request.getParameter("usuario");
         String email = request.getParameter("email");
         String pass = request.getParameter("password");
@@ -28,68 +28,53 @@ public class SrvRegistroUsuario extends HttpServlet {
         String fechaStr = request.getParameter("fechaNacimiento");
         
         HttpSession sesion = request.getSession();
-
-        // 1. Validaciones básicas
-        if (usuario == null || pass == null || email == null || dni == null || nombre == null || apellido1 == null) {
+        
+        // 2. Validaciones básicas
+        if (usuario == null || pass == null || email == null || dni == null) {
             sesion.setAttribute("error", "Faltan datos obligatorios.");
-            response.sendRedirect("registroUsuario.jsp"); 
-            return;
-        }
-
-        BdOperaciones bd = new BdOperaciones();
-        boolean conexionAbierta = bd.abrirConexion();
-
-        if (!conexionAbierta) {
-            sesion.setAttribute("error", "Error de conexión con la base de datos.");
             response.sendRedirect("registroUsuario.jsp");
             return;
         }
 
+        // 3. Crear Objeto Cliente
+        Cliente c = new Cliente();
+        c.setUsuario(usuario);
+        c.setEmail(email);
+        c.setPassword(pass);
+        c.setDni(dni);
+        c.setNombre(nombre);
+        c.setApellido1(apellido1);
+        c.setApellido2(apellido2);
+        c.setDireccion(direccion);
+        
+        // Convertir fecha (String -> java.sql.Date)
         try {
-            // 2. Comprobar duplicados
-            if (bd.existeUsuario(usuario, email)) {
-                bd.cerrarConexion();
-                sesion.setAttribute("error", "El usuario o el email ya existen.");
-                response.sendRedirect("registroUsuario.jsp");
-                return;
-            }
-
-            // 3. Crear objeto y guardar
-            Cliente c = new Cliente();
-            c.setDni(dni);
-            c.setNombre(nombre);
-            c.setApellido1(apellido1);
-            c.setApellido2(apellido2);
-            c.setDireccion(direccion);
-            
-            if (fechaStr != null && !fechaStr.isEmpty()) {
-                try {
-                    c.setFechaNacimiento(Date.valueOf(fechaStr));
-                } catch (Exception e) {
-                    c.setFechaNacimiento(null);
-                }
-            } else {
-                c.setFechaNacimiento(null);
-            }
-
-            c.setUsuario(usuario);
-            c.setEmail(email);
-            c.setPassword(pass); 
-            
-            boolean registrado = bd.registrarCliente(c);
-            bd.cerrarConexion();
-
-            if (registrado) {
-                sesion.setAttribute("success", "¡Registro completado! Ahora inicia sesión.");
-                response.sendRedirect("login.html"); 
-            } else {
-                sesion.setAttribute("error", "Hubo un error al guardar en la base de datos.");
-                response.sendRedirect("registroUsuario.jsp");
+            if(fechaStr != null && !fechaStr.isEmpty()) {
+                c.setFechaNacimiento(Date.valueOf(fechaStr));
             }
         } catch (Exception e) {
-            e.printStackTrace(); // Esto te dirá el error real en la consola roja
-            bd.cerrarConexion();
-            sesion.setAttribute("error", "Error interno en el servidor.");
+            e.printStackTrace(); // Si falla la fecha, se dejará null
+        }
+
+        // 4. Guardar en BD
+        BdOperaciones bd = new BdOperaciones();
+        
+        // Verificar si existe antes
+        if (bd.existeUsuario(usuario, email)) {
+            sesion.setAttribute("error", "El usuario o email ya existen.");
+            response.sendRedirect("registroUsuario.jsp");
+            return;
+        }
+
+        boolean registrado = bd.registrarCliente(c);
+        
+        if (registrado) {
+            // ÉXITO: Mandar al LOGIN.JSP
+            sesion.setAttribute("success", "¡Registro completado! Inicia sesión.");
+            response.sendRedirect("login.jsp");
+        } else {
+            // ERROR
+            sesion.setAttribute("error", "Error al registrar en la base de datos.");
             response.sendRedirect("registroUsuario.jsp");
         }
     }

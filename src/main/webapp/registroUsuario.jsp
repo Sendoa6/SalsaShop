@@ -158,7 +158,7 @@
                 </div>
                 <button id="registrarse" type="submit" class="botonRegistroSesion w-100">Registrarse</button>
                 
-                <p class="mt-3 text-center">¿Ya tienes usuario? <a href="login.html">Inicia sesión</a></p>
+                <p class="mt-3 text-center">¿Ya tienes usuario? <a href="login.jsp">Inicia sesión</a></p>
             </form>
         </div>
     </div>
